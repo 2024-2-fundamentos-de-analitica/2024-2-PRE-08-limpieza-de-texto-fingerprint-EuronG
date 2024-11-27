@@ -50,6 +50,38 @@ def create_key(df):
 
     return df
 
+
+def generate_cleaned_column(df):
+    """Crea la columna 'cleaned' en el DataFrame"""
+
+    df = df.copy()
+    df_orig = df.copy()
+
+    # Ordene el dataframe por 'key' y 'text'
+    df = df.sort_values(by=["key", "text"], ascending=[True, True])    
+
+    # Seleccione la primera fila de cada grupo de 'key'
+    keys = df.drop_duplicates(subset="key", keep="first")
+
+    # Cree un diccionario con 'key' como clave y 'text' como valor
+    # [(adhoc queri, AD-HOC QUERIES), (agricultur product, AGRICULTURAL PRODUCTION), ... ]
+    key_dict = dict(zip(keys["key"], keys["text"]))    
+
+    # Cree la columna 'cleaned' usando el diccionario
+    df_orig["cleaned"] = df_orig["key"].map(key_dict)
+
+    return df_orig
+
+
+def save_data(df, output_file):
+    """Guarda el DataFrame en un archivo"""
+
+    df = df.copy()
+    df = df[["cleaned"]]
+    df = df.rename(columns={"cleaned": "text"})
+    df.to_csv(output_file, index=False)
+
+
 #
 # Orquestador:
 #
@@ -58,6 +90,10 @@ def main(input_file, output_file):
 
     df = load_data(input_file)
     df = create_key(df)
+    df = generate_cleaned_column(df)
+    df.to_csv("files/output/test.csv", index=False)
+    save_data(df, output_file)
+
 
 
 
